@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edward-ThreeJS-11</title>
+    <script src="../resource/three69.js"></script>
+    <script src="../resource/BokehShader2.js"></script>
+    <script src="../resource/CinematicCamera.js"></script>
+    <script src="../resource/OBJLoader.js"></script>
+    <script src="../resource/stats.min.js"></script>
+    <script src="../resource/dat.gui.js"></script>
+    <script src="../resource/jquery-1.11.3.min.js"></script>
+    <style type="text/css">
+            body {
+                margin: 0;
+                overflow: hidden;
+            }
+        </style>
+</head>
+
+<body>
+    <div id="Stats-output"></div>
+    <div id="WebGL-output"></div>
+</body>
+
+
+    <script type="text/javascript">
+        $(function() {
+
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setClearColor( new THREE.Color(0x00000, 1.0) );
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            // renderer.shadowMap.enabled = true;// 84兼容
+            renderer.shadowMapEnabled = false;// 69兼容
+            camera.position.set( -40, 40, 40 );// 相机悬停位置
+            camera.lookAt(scene.position);
+            document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+            var axes = new THREE.AxisHelper( 20 );// 标注线 The X axis is red. The Y axis is green. The Z axis is blue.
+            // axes.position.set( 10, 0, 0 );
+            scene.add(axes);
+
+            // Big面
+            var groundGeom = new THREE.PlaneGeometry(100, 100, 4, 4);
+            var groundMesh = new THREE.Mesh(groundGeom, new THREE.MeshBasicMaterial({color: 0x777777}));
+            groundMesh.rotation.x = -Math.PI / 2;
+            groundMesh.position.y = -20;
+            scene.add(groundMesh);
+
+            // 自定义二维图形
+            var face = new THREE.ShapeGeometry(drawShape());
+            var meshMaterial = new THREE.MeshNormalMaterial();// 用法向向量计算它们的颜色
+            meshMaterial.side = THREE.DoubleSide;// 设置成双面展示，否则背面会看不到
+            var wireFrameMat = new THREE.MeshBasicMaterial();// 打开线框效果
+            wireFrameMat.wireframe = true;
+            var shape = THREE.SceneUtils.createMultiMaterialObject(face, [meshMaterial, wireFrameMat]);
+            scene.add(shape);
+
+            // 自定义二维图形（点集创建线段）
+            var shape2 = drawShape();
+            var mesh = new THREE.Line(shape2.createPointsGeometry(10), new THREE.LineBasicMaterial({
+                    color: 0xff3333,
+                    linewidth: 2
+                }));
+            mesh.position.set( 0, 0, 10 );
+            scene.add(mesh);
+
+            function render() {
+
+                scene.traverse(function (e) {
+                    if (e instanceof THREE.Mesh && e != groundMesh) {
+
+                        // e.rotation.x += 0.01;
+                        // e.rotation.y += 0.01;
+                        // e.rotation.z += 0.1;
+                    }
+                });
+                shape.rotation.y += 0.01;
+                mesh.rotation.y += 0.01;
+                requestAnimationFrame( render );
+                renderer.render(scene, camera);
+
+            }
+
+            render();
+
+            document.addEventListener('mousewheel', onDocumentMouseWheel, false);
+            document.addEventListener('DOMMouseScroll', onDocumentMouseWheel, false);// 兼容火狐
+
+            /**
+             * 鼠标滚轮改变相机焦距
+             */
+            function onDocumentMouseWheel(event) {
+                camera.fov -= event.wheelDeltaY * 0.01 || event.detail * -0.6;// 其它浏览器/火狐
+                // directionalLight.intensity -= event.wheelDeltaY * 0.001 || event.detail * -0.06;
+                camera.updateProjectionMatrix();
+            }
+
+            function drawShape() {
+
+                var shape = new THREE.Shape();
+
+                // 起点
+                shape.moveTo(10, 10);
+
+                // 移动到此点
+                shape.lineTo(10, 40);
+
+                // 两点二次曲线
+                shape.bezierCurveTo(15, 25, 25, 25, 30, 40);
+
+                // 多点平滑曲线
+                shape.splineThru(
+                        [new THREE.Vector2(32, 30),
+                            new THREE.Vector2(28, 20),
+                            new THREE.Vector2(30, 10),
+                        ]);
+
+                // 一点二次曲线
+                shape.quadraticCurveTo(20, 15, 10, 10);
+
+                // 孔洞眼睛1
+                var hole1 = new THREE.Shape();// Shape视乎等于Path
+                hole1.absellipse(16, 24, 2, 5, 0, Math.PI * 2, true);// x轴半径，y轴半径，椭圆
+                shape.holes.push(hole1);// holes孔洞属性
+
+                // 孔洞眼睛2
+                var hole2 = new THREE.Path();
+                hole2.absarc(23, 24, 2, 0, Math.PI * 2, true);// 一个半径，纯圆
+                shape.holes.push(hole2);
+
+                // 孔洞半圆嘴 
+                var hole3 = new THREE.Path();
+                hole3.absarc(20, 16, 2, 0, Math.PI, true);
+                shape.holes.push(hole3);
+
+                return shape;
+            }
+
+        })
+    </script>
+</html>

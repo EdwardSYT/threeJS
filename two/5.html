@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edward-ThreeJS-5</title>
+    <script src="../resource/three69.js"></script>
+    <script src="../resource/BokehShader2.js"></script>
+    <script src="../resource/CinematicCamera.js"></script>
+    <script src="../resource/OBJLoader.js"></script>
+    <script src="../resource/stats.min.js"></script>
+    <script src="../resource/dat.gui.js"></script>
+    <script src="../resource/jquery-1.11.3.min.js"></script>
+    <style type="text/css">
+            body {
+                margin: 0;
+                overflow: hidden;
+            }
+        </style>
+</head>
+
+<body>
+    <div id="Stats-output"></div>
+    <div id="WebGL-output"></div>
+</body>
+
+    <script type="text/javascript">
+        $(function() {
+
+
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 10, 130);
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setClearColor( new THREE.Color(0x00000, 1.0) );
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            // renderer.shadowMap.enabled = true;// 84兼容
+            renderer.shadowMapEnabled = true;// 69兼容
+            camera.position.set( -50, 40, 50 );// 相机悬停位置
+            camera.lookAt(scene.position);
+            document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+            // 面
+            var groundGeom = new THREE.PlaneGeometry(100, 100, 4, 4);
+            var groundMesh = new THREE.Mesh(groundGeom, new THREE.MeshBasicMaterial({color: 0x777777}));
+            groundMesh.rotation.x = -Math.PI / 2;
+            groundMesh.position.y = -20;
+            scene.add(groundMesh);
+
+            // 球
+            var sphereGeometry = new THREE.SphereGeometry(14, 20, 20);
+            var meshMaterial = new THREE.MeshNormalMaterial({color: 0x7777ff});
+            meshMaterial.shading = THREE.SmoothShading; // 表面变得光滑
+            // meshMaterial.shading = THREE.FlatShading; // 表面为方块，连接处有菱角
+            var sphere = new THREE.Mesh(sphereGeometry, meshMaterial);
+            sphere.position.x = 0;
+            sphere.position.y = 3;
+            sphere.position.z = 2;
+            // 法向量箭头
+            for (var f = 0, fl = sphere.geometry.faces.length; f < fl; f++) {
+                var face = sphere.geometry.faces[f];
+                var centroid = new THREE.Vector3(0, 0, 0);
+                centroid.add(sphere.geometry.vertices[face.a]);
+                centroid.add(sphere.geometry.vertices[face.b]);
+                centroid.add(sphere.geometry.vertices[face.c]);
+                centroid.divideScalar(3);
+
+                var arrow = new THREE.ArrowHelper(
+                        face.normal,
+                        centroid,
+                        2,
+                        0x3333FF,
+                        0.5,
+                        0.5);
+                sphere.add(arrow);
+            }
+            scene.add(sphere);
+
+            function render() {
+
+                scene.traverse(function (e) {
+                    if (e instanceof THREE.Mesh && e != groundMesh) {
+
+                        // e.rotation.x += 0.1;
+                        e.rotation.y += 0.01;
+                        // e.rotation.z += 0.1;
+                    }
+                });
+                requestAnimationFrame( render );
+                renderer.render(scene, camera);
+
+            }
+
+            render();
+
+            document.addEventListener('mousewheel', onDocumentMouseWheel, false);
+            document.addEventListener('DOMMouseScroll', onDocumentMouseWheel, false);// 兼容火狐
+
+            /**
+             * 鼠标滚轮改变相机焦距
+             */
+            function onDocumentMouseWheel(event) {
+                camera.fov -= event.wheelDeltaY * 0.01 || event.detail * -0.6;// 其它浏览器/火狐
+                // directionalLight.intensity -= event.wheelDeltaY * 0.001 || event.detail * -0.06;
+                camera.updateProjectionMatrix();
+            }
+
+        })
+    </script>
+</html>

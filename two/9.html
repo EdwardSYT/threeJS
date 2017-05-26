@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edward-ThreeJS-9</title>
+    <script src="../resource/three69.js"></script>
+    <script src="../resource/BokehShader2.js"></script>
+    <script src="../resource/CinematicCamera.js"></script>
+    <script src="../resource/OBJLoader.js"></script>
+    <script src="../resource/stats.min.js"></script>
+    <script src="../resource/dat.gui.js"></script>
+    <script src="../resource/jquery-1.11.3.min.js"></script>
+    <style type="text/css">
+            body {
+                margin: 0;
+                overflow: hidden;
+            }
+        </style>
+</head>
+
+<body>
+    <div id="Stats-output"></div>
+    <div id="WebGL-output"></div>
+</body>
+
+
+    <script type="text/javascript">
+        $(function() {
+
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setClearColor( new THREE.Color(0x00000, 1.0) );
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            // renderer.shadowMap.enabled = true;// 84兼容
+            renderer.shadowMapEnabled = false;// 69兼容
+            camera.position.set( -40, 40, 40 );// 相机悬停位置
+            camera.lookAt(scene.position);
+            document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+            // 面
+            var groundGeom = new THREE.PlaneGeometry(100, 100, 4, 4);
+            var groundMesh = new THREE.Mesh(groundGeom, new THREE.MeshBasicMaterial({color: 0x777777}));
+            groundMesh.rotation.x = -Math.PI / 2;
+            groundMesh.position.y = -20;
+            scene.add(groundMesh);
+
+var points = gosper(4, 60);
+var lines = new THREE.Geometry();
+var colors = [];
+var i = 0;
+points.forEach(function (e) {
+lines.vertices.push(new THREE.Vector3(e.x, e.z, e.y));
+colors[ i ] = new THREE.Color(0xffffff);
+colors[ i ].setHSL(e.x / 100 + 0.5, ( e.y * 20 ) / 300, 0.8);
+i++;
+});
+lines.colors = colors;
+var material = new THREE.LineBasicMaterial({
+opacity: 1.0,
+linewidth: 1,
+vertexColors: THREE.VertexColors });
+// var material = new THREE.LineDashedMaterial({ vertexColors: true,
+// color: 0xffffff, dashSize: 10, gapSize: 1, scale: 0.1 });
+// lines.computeLineDistances();
+var line = new THREE.Line(lines, material);
+line.position.set( 10, 0, -50 );
+scene.add(line);
+
+var material1 = new THREE.LineDashedMaterial({ vertexColors: true,
+color: 0xffffff, dashSize: 10, gapSize: 1, scale: 0.1 });
+var lines1 = new THREE.Geometry();
+lines1.computeLineDistances();
+lines1.vertices.push(new THREE.Vector3(10, 0, -50));
+lines1.vertices.push(new THREE.Vector3(10, 10, 50));
+lines1.colors = [
+                {r: 1.3938920610254217, g: 0.6084391811702108, b: 0.20610793897457835},
+                {r: 1.3938920610254217, g: 0.6084391811702108, b: 0.20610793897457835}
+            ];
+var line1 = new THREE.Line(lines1, material1);
+line1.position.set( 0, 0, 0 );
+scene.add(line1);
+
+            function render() {
+
+                scene.traverse(function (e) {
+                    if (e instanceof THREE.Mesh && e != groundMesh) {
+
+                        // e.rotation.x += 0.01;
+                        // e.rotation.y += 0.01;
+                        // e.rotation.z += 0.1;
+                    }
+                });
+                line.rotation.z += 0.01;
+                line1.rotation.y += 0.01;
+                requestAnimationFrame( render );
+                renderer.render(scene, camera);
+
+            }
+
+            render();
+
+            document.addEventListener('mousewheel', onDocumentMouseWheel, false);
+            document.addEventListener('DOMMouseScroll', onDocumentMouseWheel, false);// 兼容火狐
+
+            /**
+             * 鼠标滚轮改变相机焦距
+             */
+            function onDocumentMouseWheel(event) {
+                camera.fov -= event.wheelDeltaY * 0.01 || event.detail * -0.6;// 其它浏览器/火狐
+                // directionalLight.intensity -= event.wheelDeltaY * 0.001 || event.detail * -0.06;
+                camera.updateProjectionMatrix();
+            }
+
+                    function gosper(a, b) {
+
+            var turtle = [0, 0, 0];
+            var points = [];
+            var count = 0;
+
+            rg(a, b, turtle);
+
+
+            return points;
+
+            function rt(x) {
+                turtle[2] += x;
+            }
+
+            function lt(x) {
+                turtle[2] -= x;
+            }
+
+            function fd(dist) {
+//                ctx.beginPath();
+                points.push({x: turtle[0], y: turtle[1], z: Math.sin(count) * 5});
+//                ctx.moveTo(turtle[0], turtle[1]);
+
+                var dir = turtle[2] * (Math.PI / 180);
+                turtle[0] += Math.cos(dir) * dist;
+                turtle[1] += Math.sin(dir) * dist;
+
+                points.push({x: turtle[0], y: turtle[1], z: Math.sin(count) * 5});
+//                ctx.lineTo(turtle[0], turtle[1]);
+//                ctx.stroke();
+
+            }
+
+            function rg(st, ln, turtle) {
+
+                st--;
+                ln = ln / 2.6457;
+                if (st > 0) {
+//                    ctx.strokeStyle = '#111';
+                    rg(st, ln, turtle);
+                    rt(60);
+                    gl(st, ln, turtle);
+                    rt(120);
+                    gl(st, ln, turtle);
+                    lt(60);
+                    rg(st, ln, turtle);
+                    lt(120);
+                    rg(st, ln, turtle);
+                    rg(st, ln, turtle);
+                    lt(60);
+                    gl(st, ln, turtle);
+                    rt(60);
+                }
+                if (st == 0) {
+                    fd(ln);
+                    rt(60);
+                    fd(ln);
+                    rt(120);
+                    fd(ln);
+                    lt(60);
+                    fd(ln);
+                    lt(120);
+                    fd(ln);
+                    fd(ln);
+                    lt(60);
+                    fd(ln);
+                    rt(60)
+                }
+            }
+
+            function gl(st, ln, turtle) {
+                st--;
+                ln = ln / 2.6457;
+                if (st > 0) {
+//                    ctx.strokeStyle = '#555';
+                    lt(60);
+                    rg(st, ln, turtle);
+                    rt(60);
+                    gl(st, ln, turtle);
+                    gl(st, ln, turtle);
+                    rt(120);
+                    gl(st, ln, turtle);
+                    rt(60);
+                    rg(st, ln, turtle);
+                    lt(120);
+                    rg(st, ln, turtle);
+                    lt(60);
+                    gl(st, ln, turtle);
+                }
+                if (st == 0) {
+                    lt(60);
+                    fd(ln);
+                    rt(60);
+                    fd(ln);
+                    fd(ln);
+                    rt(120);
+                    fd(ln);
+                    rt(60);
+                    fd(ln);
+                    lt(120);
+                    fd(ln);
+                    lt(60);
+                    fd(ln);
+                }
+            }
+        }
+
+        })
+    </script>
+</html>

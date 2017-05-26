@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edward-ThreeJS-2</title>
+    <script src="../resource/three69.js"></script>
+    <script src="../resource/ConvexGeometry.js"></script>
+    <script src="../resource/BokehShader2.js"></script>
+    <script src="../resource/CinematicCamera.js"></script>
+    <script src="../resource/OBJLoader.js"></script>
+    <script src="../resource/stats.min.js"></script>
+    <script src="../resource/dat.gui.js"></script>
+    <script src="../resource/jquery-1.11.3.min.js"></script>
+    <style type="text/css">
+            body {
+                margin: 0;
+                overflow: hidden;
+            }
+        </style>
+</head>
+
+<body>
+    <div id="Stats-output"></div>
+    <div id="WebGL-output"></div>
+</body>
+
+
+    <script type="text/javascript">
+        $(function() {
+
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setClearColor( new THREE.Color(0x00000, 1.0) );
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            // renderer.shadowMap.enabled = true;// 84兼容
+            renderer.shadowMapEnabled = false;// 69兼容
+            camera.position.set( -40, 30, 40 );// 相机悬停位置
+            camera.lookAt(scene.position);
+            document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+            var axes = new THREE.AxisHelper( 20 );// 标注线 The X axis is red. The Y axis is green. The Z axis is blue.
+            // axes.position.set( 10, 0, 0 );
+            scene.add(axes);
+
+            // Big面
+            var groundGeom = new THREE.PlaneGeometry(100, 100, 4, 4);
+            var groundMesh = new THREE.Mesh(groundGeom, new THREE.MeshBasicMaterial({color: 0x777777}));
+            groundMesh.rotation.x = -Math.PI / 2;
+            groundMesh.position.y = -20;
+            scene.add(groundMesh);
+
+            function generatePoints(segments, phiStart, phiLength) {
+                // add 10 random spheres
+                var points = [];
+                var height = 5;
+                var count = 20;
+                for (var i = 0; i < count; i++) {
+                    points.push(new THREE.Vector3((Math.sin(i * 0.2) + Math.cos(i * 0.3)) * height + 12, 0, ( i - count ) + count / 2));
+                }
+
+                spGroup = new THREE.Object3D();
+                var material = new THREE.MeshBasicMaterial({color: 0xff0000, transparent: false});
+                points.forEach(function (point) {
+
+                    var spGeom = new THREE.SphereGeometry(0.2);
+                    var spMesh = new THREE.Mesh(spGeom, material);
+                    spMesh.position.copy(point);
+                    spGroup.add(spMesh);
+                });
+                // add the points as a group to the scene
+                scene.add(spGroup);
+
+                // use the same points to create a LatheGeometry
+                var latheGeometry = new THREE.LatheGeometry(points, segments, phiStart, phiLength);
+                latheMesh = createMesh(latheGeometry);
+
+                scene.add(latheMesh);
+            }
+
+            function createMesh(geom) {
+
+                // assign two materials
+                //  var meshMaterial = new THREE.MeshBasicMaterial({color:0x00ff00, transparent:true, opacity:0.6});
+                var meshMaterial = new THREE.MeshNormalMaterial();
+                meshMaterial.side = THREE.DoubleSide;
+                var wireFrameMat = new THREE.MeshBasicMaterial();
+                wireFrameMat.wireframe = true;
+
+                // create a multimaterial
+                var mesh = THREE.SceneUtils.createMultiMaterialObject(geom, [meshMaterial, wireFrameMat]);
+
+                return mesh;
+            }
+
+            generatePoints(50,1 * Math.PI,1 * Math.PI);
+
+            function render() {
+
+                scene.traverse(function (e) {
+                    if (e instanceof THREE.Mesh && e != groundMesh) {
+
+                        e.rotation.x += 0.01;
+                        e.rotation.y += 0.01;
+                        e.rotation.z += 0.01;
+                    }
+                });
+
+                spGroup.rotation.x += 0.01;
+                spGroup.rotation.y += 0.01;
+                spGroup.rotation.z += 0.01;
+
+                requestAnimationFrame( render );
+                renderer.render(scene, camera);
+
+            }
+
+            render();
+
+            document.addEventListener('mousewheel', onDocumentMouseWheel, false);
+            document.addEventListener('DOMMouseScroll', onDocumentMouseWheel, false);// 兼容火狐
+
+            /**
+             * 鼠标滚轮改变相机焦距
+             */
+            function onDocumentMouseWheel(event) {
+                camera.fov -= event.wheelDeltaY * 0.01 || event.detail * -0.6;// 其它浏览器/火狐
+                // directionalLight.intensity -= event.wheelDeltaY * 0.001 || event.detail * -0.06;
+                camera.updateProjectionMatrix();
+            }
+
+        })
+    </script>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edward-ThreeJS-4</title>
+    <script src="../resource/three69.js"></script>
+    <script src="../resource/BokehShader2.js"></script>
+    <script src="../resource/CinematicCamera.js"></script>
+    <script src="../resource/OBJLoader.js"></script>
+    <script src="../resource/stats.min.js"></script>
+    <script src="../resource/dat.gui.js"></script>
+    <script src="../resource/jquery-1.11.3.min.js"></script>
+    <style type="text/css">
+            body {
+                /* set margin to 0 and overflow to hidden,
+                to use the complete page */
+                margin: 0;
+                overflow: hidden;
+            }
+        </style>
+</head>
+
+<body>
+    <div id="Stats-output"></div>
+    <div id="WebGL-output"></div>
+</body>
+
+    <script type="text/javascript">
+        $(function() {
+
+
+            var scene = new THREE.Scene();
+            // scene.overrideMaterial = new THREE.MeshDepthMaterial();// 逐渐消失效果，纯色
+            var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 10, 130);
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setClearColor( new THREE.Color(0x00000, 1.0) );
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            // renderer.shadowMap.enabled = true;// 84兼容
+            renderer.shadowMapEnabled = true;// 69兼容
+            camera.position.set( -50, 40, 50 );// 相机悬停位置
+            camera.lookAt(scene.position);
+            document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+
+            function addCube() {
+
+                var cubeSize = Math.ceil(3 + (Math.random() * 3));
+                var cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+
+                var cubeMaterial = new THREE.MeshDepthMaterial();
+                var colorMaterial = new THREE.MeshBasicMaterial({
+                    color: Math.random() * 0xffffff,
+                    transparent: true,
+                    blending: THREE.MultiplyBlending
+                });
+                var cube = new THREE.SceneUtils.createMultiMaterialObject(cubeGeometry, [colorMaterial, cubeMaterial]);
+                cube.children[1].scale.set(0.99, 0.99, 0.99);
+                cube.castShadow = true;
+
+                // position the cube randomly in the scene
+                cube.position.x = -60 + Math.round((Math.random() * 100));
+                cube.position.y = Math.round((Math.random() * 10));
+                cube.position.z = -100 + Math.round((Math.random() * 150));
+
+                // add the cube to the scene
+                scene.add(cube);
+
+            }
+
+            var i = 0;
+            while (i < 100) {
+                addCube();
+                i++;
+            }
+
+            function render() {
+
+                scene.traverse(function (e) {
+                    if (e instanceof THREE.Mesh) {
+
+                        e.rotation.x += 0.1;
+                        e.rotation.y += 0.1;
+                        e.rotation.z += 0.1;
+                    }
+                });
+                requestAnimationFrame( render );
+                renderer.render(scene, camera);
+
+            }
+
+            render();
+
+            document.addEventListener('mousewheel', onDocumentMouseWheel, false);
+            document.addEventListener('DOMMouseScroll', onDocumentMouseWheel, false);// 兼容火狐
+
+            /**
+             * 鼠标滚轮改变相机焦距
+             */
+            function onDocumentMouseWheel(event) {
+                camera.fov -= event.wheelDeltaY * 0.01 || event.detail * -0.6;// 其它浏览器/火狐
+                // directionalLight.intensity -= event.wheelDeltaY * 0.001 || event.detail * -0.06;
+                camera.updateProjectionMatrix();
+            }
+
+        })
+    </script>
+</html>

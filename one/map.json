@@ -1,0 +1,142 @@
+{
+    "status": 0,
+    "result": {
+        "location": {
+            "lng": 103.43829899999997,
+            "lat": 23.380411015095519
+        },
+        "formatted_address": "云南省红河哈尼族彝族自治州蒙自市Y066(落龙庄公路)",
+        "business": "",
+        "addressComponent": {
+            "country": "中国",
+            "country_code": 0,
+            "province": "云南省",
+            "city": "红河哈尼族彝族自治州",
+            "district": "蒙自市",
+            "adcode": "532522",
+            "street": "Y066(落龙庄公路)",
+            "street_number": "",
+            "direction": "",
+            "distance": ""
+        },
+        "pois": [{
+            "addr": "云南省红河哈尼族彝族自治州蒙自市",
+            "cp": " ",
+            "direction": "东",
+            "distance": "486",
+            "name": "蒙自火车南站",
+            "poiType": "交通设施",
+            "point": {
+                "x": 103.43393266040978,
+                "y": 23.380558871342953
+            },
+            "tag": "交通设施;火车站",
+            "tel": "",
+            "uid": "37be78c8cef6bb3fede4a5bd",
+            "zip": ""
+        }, {
+            "addr": "零六六乡道",
+            "cp": " ",
+            "direction": "北",
+            "distance": "466",
+            "name": "四水村",
+            "poiType": "行政地标",
+            "point": {
+                "x": 103.43905300181497,
+                "y": 23.37660314961934
+            },
+            "tag": "行政地标;村庄",
+            "tel": "",
+            "uid": "cdef4edf4dcdfd4f28d7ab72",
+            "zip": ""
+        }, {
+            "addr": "红河哈尼族彝族自治州蒙自县",
+            "cp": " ",
+            "direction": "西南",
+            "distance": "482",
+            "name": "余家寨村",
+            "poiType": "行政地标",
+            "point": {
+                "x": 103.4403645278591,
+                "y": 23.38392570183546
+            },
+            "tag": "行政地标;村庄",
+            "tel": "",
+            "uid": "c7fb04bd2cd12e14fa0cad72",
+            "zip": ""
+        }, {
+            "addr": "文澜镇余家寨",
+            "cp": " ",
+            "direction": "西南",
+            "distance": "603",
+            "name": "蒙自县文澜镇余家寨村民委员会",
+            "poiType": "政府机构",
+            "point": {
+                "x": 103.44195452861124,
+                "y": 23.384108138455035
+            },
+            "tag": "政府机构;各级政府",
+            "tel": "",
+            "uid": "24d05508e3bcd0d2128824ee",
+            "zip": ""
+        }, {
+            "addr": "蒙自市其他魏攀段",
+            "cp": " ",
+            "direction": "西南",
+            "distance": "653",
+            "name": "余家寨小学",
+            "poiType": "教育培训",
+            "point": {
+                "x": 103.44242164747628,
+                "y": 23.38426569714931
+            },
+            "tag": "教育培训;小学",
+            "tel": "",
+            "uid": "af1ae56b0765316f4207c115",
+            "zip": ""
+        }],
+        "poiRegions": [],
+        "sematic_description": "蒙自火车南站东486米",
+        "cityCode": 107
+    }
+}
+
+
+
+
+
+status  成功返回0
+
+location  lat 纬度坐标  lng 经度坐标
+formatted_address  结构化地址信息
+business  所在商圈信息，如 "人民大学,中关村,苏州街"
+
+addressComponent    
+city  城市名
+district  区县名
+province  省名
+street  街道名
+street_number  街道门牌号
+
+pois （周边poi数组）   
+addr  地址信息
+cp  数据来源
+distance  离坐标点距离
+name  poi名称
+poiType  poi类型，如’ 办公大厦,商务大厦’
+point  poi坐标{x,y}
+tel  电话
+uid  poi唯一标识
+zip  邮编
+
+
+0   正常
+1   服务器内部错误
+2   请求参数非法
+3   权限校验失败
+4   配额校验失败
+5   ak不存在或者非法
+101     服务禁用
+102     不通过白名单或者安全码不对
+2xx     无权限
+3xx     配额错误

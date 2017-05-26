@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edward-ThreeJS-8</title>
+    <script src="../resource/three69.js"></script>
+    <script src="../resource/BokehShader2.js"></script>
+    <script src="../resource/CinematicCamera.js"></script>
+    <script src="../resource/OBJLoader.js"></script>
+    <script src="../resource/stats.min.js"></script>
+    <script src="../resource/dat.gui.js"></script>
+    <script src="../resource/jquery-1.11.3.min.js"></script>
+    <style type="text/css">
+            body {
+                margin: 0;
+                overflow: hidden;
+            }
+        </style>
+</head>
+
+<body>
+    <div id="Stats-output"></div>
+    <div id="WebGL-output"></div>
+</body>
+
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+    uniform float time;
+    varying vec2 vUv;
+
+
+    void main()
+    {
+    vec3 posChanged = position;
+    posChanged.x = posChanged.x*(abs(sin(time*1.0)));
+    posChanged.y = posChanged.y*(abs(cos(time*1.0)));
+    posChanged.z = posChanged.z*(abs(sin(time*1.0)));
+    //gl_Position = projectionMatrix * modelViewMatrix * vec4(position*(abs(sin(time)/2.0)+0.5),1.0);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(posChanged,1.0);
+    }
+
+</script>
+<script id="fragment-shader-1" type="x-shader/x-fragment">
+    precision highp float;
+    uniform float time;
+    uniform float alpha;
+    uniform vec2 resolution;
+    varying vec2 vUv;
+
+    void main2(void)
+    {
+    vec2 position = vUv;
+    float red = 1.0;
+    float green = 0.25 + sin(time) * 0.25;
+    float blue = 0.0;
+    vec3 rgb = vec3(red, green, blue);
+    vec4 color = vec4(rgb, alpha);
+    gl_FragColor = color;
+    }
+
+    #define PI 3.14159
+    #define TWO_PI (PI*2.0)
+    #define N 68.5
+
+    void main(void)
+    {
+    vec2 center = (gl_FragCoord.xy);
+    center.x=-10.12*sin(time/200.0);
+    center.y=-10.12*cos(time/200.0);
+
+    vec2 v = (gl_FragCoord.xy - resolution/20.0) / min(resolution.y,resolution.x) * 15.0;
+    v.x=v.x-10.0;
+    v.y=v.y-200.0;
+    float col = 0.0;
+
+    for(float i = 0.0; i < N; i++)
+    {
+    float a = i * (TWO_PI/N) * 61.95;
+    col += cos(TWO_PI*(v.y * cos(a) + v.x * sin(a) + sin(time*0.004)*100.0 ));
+    }
+
+    col /= 5.0;
+
+    gl_FragColor = vec4(col*1.0, -col*1.0,-col*4.0, 1.0);
+    }
+
+
+</script>
+
+<script id="fragment-shader-2" type="x-shader/x-fragment">
+    // from http://glsl.heroku.com/e#7906.0
+
+
+    uniform float time;
+    uniform vec2 resolution;
+
+    // 2013-03-30 by @hintz
+
+    #define CGFloat float
+    #define M_PI 3.14159265359
+
+    vec3 hsvtorgb(float h, float s, float v)
+    {
+    float c = v * s;
+    h = mod((h * 6.0), 6.0);
+    float x = c * (1.0 - abs(mod(h, 2.0) - 1.0));
+    vec3 color;
+
+    if (0.0 <= h && h < 1.0)
+    {
+    color = vec3(c, x, 0.0);
+    }
+    else if (1.0 <= h && h < 2.0)
+    {
+    color = vec3(x, c, 0.0);
+    }
+    else if (2.0 <= h && h < 3.0)
+    {
+    color = vec3(0.0, c, x);
+    }
+    else if (3.0 <= h && h < 4.0)
+    {
+    color = vec3(0.0, x, c);
+    }
+    else if (4.0 <= h && h < 5.0)
+    {
+    color = vec3(x, 0.0, c);
+    }
+    else if (5.0 <= h && h < 6.0)
+    {
+    color = vec3(c, 0.0, x);
+    }
+    else
+    {
+    color = vec3(0.0);
+    }
+
+    color += v - c;
+
+    return color;
+    }
+
+    void main(void)
+    {
+
+    vec2 position = (gl_FragCoord.xy - 0.5 * resolution) / resolution.y;
+    float x = position.x;
+    float y = position.y;
+
+    CGFloat a = atan(x, y);
+
+    CGFloat d = sqrt(x*x+y*y);
+    CGFloat d0 = 0.5*(sin(d-time)+1.5)*d;
+    CGFloat d1 = 5.0;
+
+    CGFloat u = mod(a*d1+sin(d*10.0+time), M_PI*2.0)/M_PI*0.5 - 0.5;
+    CGFloat v = mod(pow(d0*4.0, 0.75),1.0) - 0.5;
+
+    CGFloat dd = sqrt(u*u+v*v);
+
+    CGFloat aa = atan(u, v);
+
+    CGFloat uu = mod(aa*3.0+3.0*cos(dd*30.0-time), M_PI*2.0)/M_PI*0.5 - 0.5;
+    // CGFloat vv = mod(dd*4.0,1.0) - 0.5;
+
+    CGFloat d2 = sqrt(uu*uu+v*v)*1.5;
+
+    gl_FragColor = vec4( hsvtorgb(dd+time*0.5/d1, sin(dd*time), d2), 1.0 );
+    }
+
+</script>
+    <script type="text/javascript">
+        $(function() {
+
+
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setClearColor( new THREE.Color(0x00000, 1.0) );
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            // renderer.shadowMap.enabled = true;// 84兼容
+            renderer.shadowMapEnabled = false;// 69兼容
+            camera.position.set( -40, 40, 40 );// 相机悬停位置
+            camera.lookAt(scene.position);
+            document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+            // 面
+            var groundGeom = new THREE.PlaneGeometry(100, 100, 4, 4);
+            var groundMesh = new THREE.Mesh(groundGeom, new THREE.MeshBasicMaterial({color: 0x777777}));
+            groundMesh.rotation.x = -Math.PI / 2;
+            groundMesh.position.y = -20;
+            scene.add(groundMesh);
+
+            
+            // 正方体
+            var cubeGeometry = new THREE.BoxGeometry(20, 20, 20);
+
+            var meshMaterial1 = createMaterial("vertex-shader", "fragment-shader-1");
+            var meshMaterial2 = createMaterial("vertex-shader", "fragment-shader-2");
+
+
+            var material = new THREE.MeshFaceMaterial(
+                    [meshMaterial1,
+                        meshMaterial1,
+                        meshMaterial2,
+                        meshMaterial1,
+                        meshMaterial2,
+                        meshMaterial1]);
+    //        var material = new THREE.MeshFaceMaterial([meshMaterial2, meshMaterial2, meshMaterial1, meshMaterial1, meshMaterial1, meshMaterial1]);
+
+            var cube = new THREE.Mesh(cubeGeometry, material);
+
+
+            // add the sphere to the scene
+            scene.add(cube);
+
+            function render() {
+
+                scene.traverse(function (e) {
+                    if (e instanceof THREE.Mesh && e != groundMesh) {
+
+                        // e.rotation.x += 0.01;
+                        // e.rotation.y += 0.01;
+                        // e.rotation.z += 0.1;
+                    }
+                });
+                cube.material.materials.forEach(function (e) {
+                e.uniforms.time.value += 0.01;
+            });
+                requestAnimationFrame( render );
+                renderer.render(scene, camera);
+
+            }
+
+            render();
+
+            document.addEventListener('mousewheel', onDocumentMouseWheel, false);
+            document.addEventListener('DOMMouseScroll', onDocumentMouseWheel, false);// 兼容火狐
+
+            /**
+             * 鼠标滚轮改变相机焦距
+             */
+            function onDocumentMouseWheel(event) {
+                camera.fov -= event.wheelDeltaY * 0.01 || event.detail * -0.6;// 其它浏览器/火狐
+                // directionalLight.intensity -= event.wheelDeltaY * 0.001 || event.detail * -0.06;
+                camera.updateProjectionMatrix();
+            }
+
+            function createMaterial(vertexShader, fragmentShader) {
+            var vertShader = document.getElementById(vertexShader).innerHTML;
+            var fragShader = document.getElementById(fragmentShader).innerHTML;
+
+            var attributes = {};
+            var uniforms = {
+                time: {type: 'f', value: 0.2},
+                scale: {type: 'f', value: 0.2},
+                alpha: {type: 'f', value: 0.6},
+                resolution: {type: "v2", value: new THREE.Vector2()}
+            };
+
+            uniforms.resolution.value.x = window.innerWidth;
+            uniforms.resolution.value.y = window.innerHeight;
+
+            var meshMaterial = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                attributes: attributes,
+                vertexShader: vertShader,
+                fragmentShader: fragShader,
+                transparent: true
+
+            });
+
+
+            return meshMaterial;
+        }
+
+        })
+    </script>
+</html>
